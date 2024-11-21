@@ -8,8 +8,16 @@
     ├── stock_logo/
     ├── XAI_GUI.ui
     ├── main.py
-    ├── chart.py
+    ├── stock_chart.py
     └── README.md
+
+
+### Major Libraries
+```
+pip install pyqt5
+pip install lightweight-charts
+pip install lime
+```
 
 Project of KW-VIP "그래프 머신러닝과 강화학습을 이용한 투자 알고리즘 개발"
 
