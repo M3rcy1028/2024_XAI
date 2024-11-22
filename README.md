@@ -7,7 +7,9 @@
     ├── stock_csv/         # 
     ├── stock_logo/
     ├── XAI_GUI.ui
+	├── module.py
     ├── main.py
+	├── mainWindow.py
     ├── stock_chart.py
     └── README.md
 
