@@ -9,7 +9,8 @@ import re
 # 한글 폰트 설정
 # plt.rcParams['font.family'] = 'NanumGothic'  # Windows
 plt.rcParams['font.family'] = 'AppleGothic'  # Mac
-mpl.rcParams['axes.unicode_minus'] = False  # 마이너스 기호 깨짐 방지
+mpl.rcParams['axes.unicode_minus'] = False
+
 
 def signal_marking(code, pred: pd.Series, alpha, beta, start_date=None, end_date=None):
     # 가격 데이터 로드 및 기간 필터링
@@ -85,65 +86,9 @@ def plot_lime(explanations, instance_dates, predictions, output_path):
     plt.close()
     print(f"Saved {output_path}!")
 
-# code = '000660'
-#
-# # test할 csv 로드
-# test_data = pd.read_csv(f'data/labeled/{code}.csv', parse_dates=['Date'], index_col='Date')
-#
-# # 모델 로드
-# with open(f'model/{code}_model.pkl', 'rb') as f:
-#     model: RandomForestRegressor = pickle.load(f)
-#
-# model_feature_names = model.feature_names_in_
-#
-# test_features = test_data[model_feature_names]
-# test_labels = test_data.iloc[:, -1]
-#
-# pred = model.predict(test_features)
-# sr_pred = pd.Series(pred, index=test_data.index)
-#
-# # 사용자가 지정한 날짜 기간
-# start_date = "2022-02-01"
-# end_date = "2023-07-06"
-#
-# # 매수/매도 시그널 시각화 및 날짜 반환
-# buy_dates, sell_dates = signal_marking(code, sr_pred, 0.1, -0.05, start_date, end_date)
-#
-# # LIME 설명 생성
-# explanations = []
-# instance_dates = []
-# predictions = []
-# actual_labels = []
-#
-# signal_dates = list(set(buy_dates + sell_dates))
-# signal_dates = sorted(signal_dates)[-4:]  # 최근 4개 데이터 선택
-#
-# explainer = LimeTabularExplainer(
-#     test_features.values,
-#     mode="regression",
-#     feature_names=model_feature_names.tolist(),
-#     verbose=True,
-#     random_state=42
-# )
-#
-# for signal_date in signal_dates:
-#     instance_index = test_data.index.get_loc(signal_date)
-#     instance = test_features.iloc[instance_index].values
-#     instance_date = signal_date
-#     prediction = model.predict([instance])[0]
-#     actual = test_labels.iloc[instance_index]
-#     explanation = explainer.explain_instance(instance, model.predict, num_features=5)
-#
-#     explanations.append(explanation)
-#     instance_dates.append(instance_date)
-#     predictions.append(prediction)
-#
-# output_file = 'result/lime_explanation.png'
-# plot_lime(explanations, instance_dates, predictions, output_file)
 
 def run_lime_analysis(code, start_date, end_date, alpha=0.1, beta=-0.05, output_file='result/lime_explanation.png'):
     print(f"Running LIME Analysis for code: {code}, Start Date: {start_date}, End Date: {end_date}")
-    # test할 csv 로드
     test_data = pd.read_csv(f'data/labeled/{code}.csv', parse_dates=['Date'], index_col='Date')
 
     # 모델 로드
@@ -153,12 +98,10 @@ def run_lime_analysis(code, start_date, end_date, alpha=0.1, beta=-0.05, output_
     model_feature_names = model.feature_names_in_
 
     test_features = test_data[model_feature_names]
-    test_labels = test_data.iloc[:, -1]
 
     pred = model.predict(test_features)
     sr_pred = pd.Series(pred, index=test_data.index)
 
-    # 매수/매도 시그널 시각화 및 날짜 반환
     buy_dates, sell_dates = signal_marking(code, sr_pred, alpha, beta, start_date, end_date)
 
     # LIME 설명 생성

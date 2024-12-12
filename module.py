@@ -14,5 +14,7 @@ import pandas as pd
 from lightweight_charts import Chart
 import mplfinance as mpf
 import matplotlib.pyplot as plt
+import subprocess
+import re
 
 # ICONs from https://www.flaticon.com/
