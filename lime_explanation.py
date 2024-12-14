@@ -107,6 +107,15 @@ def run_lime_analysis(code, start_date, end_date, alpha=0.1, beta=-0.05, output_
 
     buy_dates, sell_dates = signal_marking(code, sr_pred, alpha, beta, start_date, end_date)
 
+    if not buy_dates and not sell_dates:
+        print("해당 기간 내에는 매수/매도 시그널이 없음")
+        fig, ax = plt.subplots(figsize=(8, 6))
+        ax.text(0.5, 0.5, "해당 기간 내에는 매수/매도 시그널이 없음", fontsize=20, ha='center', va='center')
+        ax.axis('off')
+        plt.savefig(output_file)
+        plt.close()
+        return output_file
+
     # LIME 설명 생성
     explanations = []
     instance_dates = []
