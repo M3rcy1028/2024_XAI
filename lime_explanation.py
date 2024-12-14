@@ -5,10 +5,13 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import re
+import platform
 
 # 한글 폰트 설정
-# plt.rcParams['font.family'] = 'NanumGothic'  # Windows
-plt.rcParams['font.family'] = 'AppleGothic'  # Mac
+if platform.system() == 'Windows':
+    plt.rcParams['font.family'] = 'NanumGothic'
+elif platform.system() == 'Darwin':  # macOS
+    plt.rcParams['font.family'] = 'AppleGothic'
 mpl.rcParams['axes.unicode_minus'] = False
 
 
@@ -88,7 +91,7 @@ def plot_lime(explanations, instance_dates, predictions, output_path):
 
 
 def run_lime_analysis(code, start_date, end_date, alpha=0.1, beta=-0.05, output_file='result/lime_explanation.png'):
-    print(f"Running LIME Analysis for code: {code}, Start Date: {start_date}, End Date: {end_date}")
+    print(f"Code: {code}, Start Date: {start_date}, End Date: {end_date}")
     test_data = pd.read_csv(f'data/labeled/{code}.csv', parse_dates=['Date'], index_col='Date')
 
     # 모델 로드
