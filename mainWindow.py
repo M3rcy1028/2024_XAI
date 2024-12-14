@@ -2,22 +2,24 @@ from module import *
 from stock_chart import StockChart
 from infoWindow import WindowClass2
 from expWindow import WindowClass3
+from lime_explanation import run_lime_analysis
 
 # import ui file
 form_class = uic.loadUiType("./XAI_GUI.ui")[0]
+
 
 class WindowClass(QMainWindow, form_class):
     def __init__(self):
         #### Main Widget Design
         super().__init__()
         self.setupUi(self)
-        self.setWindowTitle("KW-VIP XAI")                # main widget title
-        self.setWindowIcon(QIcon("./design/kwlogo.png")) # main widget icon
+        self.setWindowTitle("KW-VIP XAI")  # main widget title
+        self.setWindowIcon(QIcon("./design/kwlogo.png"))  # main widget icon
         # self.LLM_text.setReadOnly(True)                  # ReadOnly
-        self.SetComboBox()                               # set selections
-        self.statusBar = self.statusBar()                # access status bar
+        self.SetComboBox()  # set selections
+        self.statusBar = self.statusBar()  # access status bar
         #### set/get main widget position
-        self.move(400, 200) 
+        self.move(400, 200)
         MainWindowSize = self.geometry()
         self.main_x = MainWindowSize.x()
         self.main_y = MainWindowSize.y()
@@ -33,7 +35,7 @@ class WindowClass(QMainWindow, form_class):
         self.infoButton.setIcon(QIcon("./design/info.png"))
         self.logButton.setIcon(QIcon("./design/log.png"))
         self.Widget1_image = "./result/StockChart.png"
-        self.Widget2_image = "./result/LIME_result.png"
+        self.Widget2_image = "./result/lime_explanation.png"
         self.Widget3_image = "./result/LIME_result.png"
         self.force = 0
         #### time
@@ -46,7 +48,7 @@ class WindowClass(QMainWindow, form_class):
         self.LogWidget()
         self.__initGUI__()
         self.__main__()
-    
+
     #### connect to external widget ####
     def ShowInfoWidget(self):
         self.infoWidget = WindowClass2()
@@ -58,15 +60,16 @@ class WindowClass(QMainWindow, form_class):
         self.expWidget.move(self.main_x + self.main_width, self.main_y)
         self.expWidget.show()
 
-    def closeEvent(self, event): # close external windows
+    def closeEvent(self, event):  # close external windows
         if hasattr(self, 'infoWidget'):
             self.infoWidget.close()
         if hasattr(self, "expWidget"):
             self.expWidget.close()
         event.accept()
+
     #### End of connect to external widget ####
 
-    def printLog(self, record="", msgreset = 0): # message logs
+    def printLog(self, record="", msgreset=0):  # message logs
         timestamp = time.strftime("[%Y-%m-%d %H:%M:%S] ", time.localtime())
         if msgreset:
             self.msglog = str(timestamp) + "GUI reset"
@@ -74,9 +77,9 @@ class WindowClass(QMainWindow, form_class):
             self.msglog = self.msglog + "\n" + str(timestamp) + record
         self.logtext.setText(self.msglog)
 
-    def __initGUI__(self): # [Reset]
+    def __initGUI__(self):  # [Reset]
         self.printLog(msgreset=1)
-        self.progressBar.setValue(0) # progressBar initial value
+        self.progressBar.setValue(0)  # progressBar initial value
         self.progressBar_label.setText("Ready")
         # self.SetLLM()
         self.SetLabel()
@@ -86,7 +89,7 @@ class WindowClass(QMainWindow, form_class):
         # widget settings
         self.InitWidet()
 
-    def __exit__(self): # [Exit]
+    def __exit__(self):  # [Exit]
         self.CloseWidget()
         self.CalendarWidget.close()
         self.LogWidget.close()
@@ -94,17 +97,17 @@ class WindowClass(QMainWindow, form_class):
 
     def __main__(self):
         # pushButton
-        self.ConfirmButton.clicked.connect(self.InputButton) 
-        self.ResetButton.clicked.connect(self.__initGUI__) 
-        self.ExitButton.clicked.connect(self.__exit__) 
-        self.ShowButton.clicked.connect(self.OutputButton) 
+        self.ConfirmButton.clicked.connect(self.InputButton)
+        self.ResetButton.clicked.connect(self.__initGUI__)
+        self.ExitButton.clicked.connect(self.__exit__)
+        self.ShowButton.clicked.connect(self.OutputButton)
         self.CloseButton.clicked.connect(self.CloseWidget)
         self.calendarButton.clicked.connect(self.CalendarWidget_exec)
         self.infoButton.clicked.connect(self.ShowInfoWidget)
         self.logButton.clicked.connect(self.LogWidget_exec)
         self.expButton.clicked.connect(self.ShowExpWidget)
         # checkBox
-        self.SelectAll_checkBox.stateChanged.connect(self.SelectCheckBox) 
+        self.SelectAll_checkBox.stateChanged.connect(self.SelectCheckBox)
         self.Candle_checkBox.stateChanged.connect(self.DeselectCheckBox)
         self.Chart_checkBox.stateChanged.connect(self.DeselectCheckBox)
         self.LIME_checkBox.stateChanged.connect(self.DeselectCheckBox)
@@ -116,14 +119,15 @@ class WindowClass(QMainWindow, form_class):
         self.Q3_radioButton.clicked.connect(self.SetDateEdit)
         self.Q4_radioButton.clicked.connect(self.SetDateEdit)
 
-    def SetLabel(self, stock="None", period="None"): # Set Stock info label
+    def SetLabel(self, stock="None", period="None"):  # Set Stock info label
         self.Stockname_label.setText(stock)
         self.Period_label.setText(period)
 
     # def SetLLM(self, content='데이터를 선택해주세요.'): # print LLM or Error msg
     #     self.LLM_text.setText("\n" + content)
 
-    def SetComboBox(self): # insert stocks into comboBox
+    def SetComboBox(self):  # insert stocks into comboBox
+        self.StockComboBox.addItem("SK하이닉스 (KRX:000660)")
         self.StockComboBox.addItem("삼성전자 (KRX:005930)")
         self.StockComboBox.addItem("엔씨소프트 (KRX:036570)")
         self.StockComboBox.addItem("KB금융 (KRX:105560)")
@@ -164,10 +168,10 @@ class WindowClass(QMainWindow, form_class):
             self.SHAP_checkBox.setChecked(True)
             self.force = 1
         elif self.force:
-                self.Candle_checkBox.setChecked(False)
-                self.Chart_checkBox.setChecked(False)
-                self.LIME_checkBox.setChecked(False)
-                self.SHAP_checkBox.setChecked(False)
+            self.Candle_checkBox.setChecked(False)
+            self.Chart_checkBox.setChecked(False)
+            self.LIME_checkBox.setChecked(False)
+            self.SHAP_checkBox.setChecked(False)
 
     def DeselectCheckBox(self, state):
         '''
@@ -177,30 +181,31 @@ class WindowClass(QMainWindow, form_class):
             [Select All] becomes True.
         '''
         if state == 2 and (self.Candle_checkBox.isChecked() and
-            self.Chart_checkBox.isChecked() and
-            self.LIME_checkBox.isChecked() and
-            self.SHAP_checkBox.isChecked()):
+                           self.Chart_checkBox.isChecked() and
+                           self.LIME_checkBox.isChecked() and
+                           self.SHAP_checkBox.isChecked()):
             self.SelectAll_checkBox.setChecked(True)
         else:
             self.force = 0
             self.SelectAll_checkBox.setChecked(False)
 
-    def ShowTime(self): # Display current time in the status bar
+    def ShowTime(self):  # Display current time in the status bar
         current_date = QDate.currentDate()
         current_time = QTime.currentTime()
         formatted_time = datetime.now().strftime("%A, %B %d, %Y, %I:%M:%S %p")
-        self.statusBar.showMessage(formatted_time)  
-    
-    #### Define Button Function ####
-    def InputButton(self): # [Confirm]        
+        self.statusBar.showMessage(formatted_time)
+
+        #### Define Button Function ####
+
+    def InputButton(self):  # [Confirm]
         # self.SetLLM()
         self.CloseWidget()
         self.DataProcessing()
         self.GenerateResult()
         self.ProgressLoading()
         self.printLog(record="Data submitted")
-        
-    def DataProcessing(self): # Process input data 
+
+    def DataProcessing(self):  # Process input data
         # get stock name without stock code
         sname = self.StockComboBox.currentText()
         sname = sname.split(' ')
@@ -212,20 +217,20 @@ class WindowClass(QMainWindow, form_class):
         edate_str = str(self.edate.day()) + "/" + str(self.edate.month()) + "/" + str(self.edate.year())
         self.StockPeriod = sdate_str + " - " + edate_str
         self.SetLabel(self.StockComboBox.currentText(), self.StockPeriod)
-    
-    def GenerateResult(self): # gernerate results using other files
+
+    def GenerateResult(self):  # gernerate results using other files
         try:
             StockChart(stockname=self.StockName, startdate=self.sdate.toPyDate(), enddate=self.edate.toPyDate())
         except Exception as e:
             self.printLog(record=str(e))
             # self.SetLLM(str(e))
-        
-    def ProgressLoading(self): # design Loading bar
+
+    def ProgressLoading(self):  # design Loading bar
         self.progressBar_label.setText("Loading...")
-        for i in range (20):
+        for i in range(20):
             self.progressBar.setValue(i)
             sleep(0.05)
-        for i in range (20, 50):
+        for i in range(20, 50):
             self.progressBar.setValue(i)
             sleep(0.01)
         for i in range(50, 101):
@@ -234,24 +239,25 @@ class WindowClass(QMainWindow, form_class):
         sleep(0.5)
         self.progressBar_label.setText("Completed")
 
-    def OutputButton(self): # [Show]
-        self.CloseWidget()      # close old result widgets
-        try: # create lightweight chart
-            self.chart = StockChart(method='lightweight', stockname=self.StockName, startdate=self.sdate.toPyDate(), enddate=self.edate.toPyDate())
+    def OutputButton(self):  # [Show]
+        self.CloseWidget()  # close old result widgets
+        try:  # create lightweight chart
+            self.chart = StockChart(method='lightweight', stockname=self.StockName, startdate=self.sdate.toPyDate(),
+                                    enddate=self.edate.toPyDate())
         except Exception as e:
             self.printLog(record=str(e))
-        self.InitWidet()        # update widgets
-        self.OpenWidget()       # open new result widgets
+        self.InitWidet()  # update widgets
+        self.OpenWidget()  # open new result widgets
         # self.SetLLM(self.StockName)
-        
+
     #### End of Button Function ####
-    
+
     def InitWidet(self):
         self.Widget1_init()
         self.Widget2_init()
         self.Widget3_init()
 
-    def OpenWidget(self): # open selected widgets
+    def OpenWidget(self):  # open selected widgets
         if self.Chart_checkBox.isChecked():
             self.Widget1_exec()
             self.printLog(record="prediction chart selected")
@@ -259,6 +265,19 @@ class WindowClass(QMainWindow, form_class):
             self.chart.show(block=False)
             self.printLog(record="candle chart selected")
         if self.LIME_checkBox.isChecked() and self.SHAP_checkBox.isChecked():
+            start_date = self.StartDate.date().toString("yyyy-MM-dd")
+            end_date = self.EndDate.date().toString("yyyy-MM-dd")
+
+            stock_name = self.StockComboBox.currentText()
+            code = re.search(r':(\d+)', stock_name).group(1)
+
+            output_file = "./result/lime_explanation.png"
+            try:
+                result_image = run_lime_analysis(code, start_date, end_date, output_file=output_file)
+                self.Widget2_image = result_image  # 결과 이미지 업데이트
+            except Exception as e:
+                self.printLog(record=f"LIME 실행 오류: {e}")
+                return
             self.Widget2_exec()
             self.Widget3_exec()
             self.printLog(record="LIME/SHAP selected")
@@ -266,10 +285,23 @@ class WindowClass(QMainWindow, form_class):
             self.Widget2_exec("SHAP", "./design/shap.png")
             self.printLog(record="SHAP selected")
         elif self.LIME_checkBox.isChecked() and self.SHAP_checkBox.isChecked() == False:
+            start_date = self.StartDate.date().toString("yyyy-MM-dd")
+            end_date = self.EndDate.date().toString("yyyy-MM-dd")
+
+            stock_name = self.StockComboBox.currentText()
+            code = re.search(r':(\d+)', stock_name).group(1)
+
+            output_file = "./result/lime_explanation.png"
+            try:
+                result_image = run_lime_analysis(code, start_date, end_date, output_file=output_file)
+                self.Widget2_image = result_image  # 결과 이미지 업데이트
+            except Exception as e:
+                self.printLog(record=f"LIME 실행 오류: {e}")
+                return
             self.Widget2_exec()
             self.printLog(record="LIME selected")
 
-    def CloseWidget(self): # close all the opend widgets w/o main
+    def CloseWidget(self):  # close all the opend widgets w/o main
         self.printLog(record="Result widgets are closed")
         self.Widget1.close()
         self.Widget2.close()
@@ -279,11 +311,11 @@ class WindowClass(QMainWindow, form_class):
             If a user wants to update or re-display this chart,
             he/she must push [Close] button.
         '''
-        if self.chart: 
+        if self.chart:
             self.chart.exit()
-    
+
     #### Define Widgets #####
-    def Widget1_init(self): 
+    def Widget1_init(self):
         self.Widget1 = QWidget()
         self.Widget1.resize(700, 430)
         # Right side of main
@@ -296,21 +328,22 @@ class WindowClass(QMainWindow, form_class):
         Stocklabel = QLabel()
         Stocklabel.setPixmap(Stockpixmap)
         Stocklabel.setScaledContents(True)
-        Stocklayout.addWidget(Stocklabel) # add new layout
+        Stocklayout.addWidget(Stocklabel)  # add new layout
         '''
         image = QPixmap()
         image.load(self.StockLinepath)
         image = image.scaled(710, 300)
         self.StockChartImage.setPixmap(image)
         '''
+
     def Widget1_exec(self, title="Stock Chart", icon="./design/stockchart.png"):
         self.Widget1.setWindowTitle(title)
         self.Widget1.setWindowIcon(QIcon(icon))
         self.Widget1.show()
 
-    def Widget2_init(self): 
+    def Widget2_init(self):
         self.Widget2 = QWidget()
-        self.Widget2.resize(400, 300)
+        self.Widget2.resize(900, 600)
         self.Widget2.setMinimumSize(100, 100)
         # below main
         self.Widget2.move(self.main_x, self.main_y + self.main_height + 30)
@@ -321,14 +354,32 @@ class WindowClass(QMainWindow, form_class):
         wd2label = QLabel()
         wd2label.setPixmap(wd2pixmap)
         wd2label.setScaledContents(True)
-        Widget2layout.addWidget(wd2label) # add new layout
+        Widget2layout.addWidget(wd2label)  # add new layout
 
     def Widget2_exec(self, title="LIME", icon="./design/lime.png"):
+        self.Widget2_image = "./result/lime_explanation.png"
+
+        if hasattr(self, "Widget2") and self.Widget2.isVisible():
+            self.Widget2.close()
+
+        self.Widget2 = QWidget()
+        self.Widget2.resize(900, 600)
+        self.Widget2.setMinimumSize(100, 100)
+
+        lime_pixmap = QPixmap(self.Widget2_image)
+        lime_label = QLabel()
+        lime_label.setPixmap(lime_pixmap)
+        lime_label.setScaledContents(True)
+
+        Widget2layout = QVBoxLayout()
+        Widget2layout.addWidget(lime_label)
+        self.Widget2.setLayout(Widget2layout)
+
         self.Widget2.setWindowTitle(title)
         self.Widget2.setWindowIcon(QIcon(icon))
         self.Widget2.show()
 
-    def Widget3_init(self): 
+    def Widget3_init(self):
         # get position of widget2
         wd2_geometry = self.Widget2.geometry()
         wd2_x = wd2_geometry.x()
@@ -346,7 +397,7 @@ class WindowClass(QMainWindow, form_class):
         wd3label = QLabel()
         wd3label.setPixmap(wd3pixmap)
         wd3label.setScaledContents(True)
-        Widget3layout.addWidget(wd3label) # add new layout
+        Widget3layout.addWidget(wd3label)  # add new layout
 
     def Widget3_exec(self, title="SHAP", icon="./design/shap.png"):
         self.Widget3.setWindowTitle(title)
@@ -358,17 +409,17 @@ class WindowClass(QMainWindow, form_class):
         self.CalendarWidget.resize(300, 300)
         self.CalendarWidget.setMinimumSize(200, 200)
         # left side of main
-        self.CalendarWidget.move(self.main_x - 300, self.main_y) 
+        self.CalendarWidget.move(self.main_x - 300, self.main_y)
         CalendarLayout = QVBoxLayout()
         self.CalendarWidget.setLayout(CalendarLayout)
         # add calendar widget
         self.calendar = QCalendarWidget()
-        self.calendar.setGridVisible(True) 
+        self.calendar.setGridVisible(True)
         # set language : en
         QLocale.setDefault(QLocale(QLocale.English))
         self.calendar.setLocale(QLocale(QLocale.English))
         ##
-        CalendarLayout.addWidget(self.calendar) # add layout
+        CalendarLayout.addWidget(self.calendar)  # add layout
         self.CalendarWidget.setWindowTitle("Calendar")
         self.CalendarWidget.setWindowIcon(QIcon("./design/calendar.png"))
         # self.CalendarWidget.show()
@@ -386,11 +437,11 @@ class WindowClass(QMainWindow, form_class):
         self.LogWidget.setLayout(LogLayout)
         # add text browser
         self.logtext = QTextEdit()
-        self.logtext.setReadOnly(True) 
-        LogLayout.addWidget(self.logtext) # add layout
+        self.logtext.setReadOnly(True)
+        LogLayout.addWidget(self.logtext)  # add layout
         self.LogWidget.setWindowTitle("Log")
         self.LogWidget.setWindowIcon(QIcon("./design/log.png"))
-        
+
     def LogWidget_exec(self):
         self.LogWidget.show()
     #### End of Widgets #####
