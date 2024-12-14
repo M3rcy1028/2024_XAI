@@ -343,7 +343,7 @@ class WindowClass(QMainWindow, form_class):
 
     def Widget2_init(self):
         self.Widget2 = QWidget()
-        self.Widget2.resize(400, 300)
+        self.Widget2.resize(900, 600)
         self.Widget2.setMinimumSize(100, 100)
         # below main
         self.Widget2.move(self.main_x, self.main_y + self.main_height + 30)
@@ -363,7 +363,7 @@ class WindowClass(QMainWindow, form_class):
             self.Widget2.close()
 
         self.Widget2 = QWidget()
-        self.Widget2.resize(800, 600)
+        self.Widget2.resize(900, 600)
         self.Widget2.setMinimumSize(100, 100)
 
         lime_pixmap = QPixmap(self.Widget2_image)
