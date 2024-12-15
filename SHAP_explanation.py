@@ -72,5 +72,4 @@ def run_shap_analysis(code, data):
     shap.summary_plot(shap_values, X, plot_type="dot")
 
 
-data1 = load_and_filter_data('005930', '2016-02-01', '2022-01-01')
-run_shap_analysis('005930', data1)
+run_shap_analysis('005930', load_and_filter_data('005930', '2016-02-01', '2022-01-01'))
