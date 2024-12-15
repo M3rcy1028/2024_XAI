@@ -1,0 +1,4 @@
+000660,SK_Hynix
+005930,Samsung_Electronics
+036570,NCSoft
+105560,KB_Financial_Group

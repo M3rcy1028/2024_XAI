@@ -11,7 +11,7 @@ class FinDataLoader:
         self.path = path
         self.stock_list = {}
         
-        with open(f"{path}/kospi_50.txt", 'r') as f:
+        with open(f"{path}/kospi_4.txt", 'r') as f:
             for line in f:
                 code, name = line.strip().split(',')
                 self.stock_list[code] = name
@@ -48,12 +48,12 @@ class FinDataLoader:
             df_stat = wrap(df_price)
             
             df_ta['Close'] = close
-            df_ta['sma_10'] = df_stat['close_10_sma']/close
-            df_ta['sma_20'] = df_stat['close_20_sma']/close
-            df_ta['sma_60'] = df_stat['close_60_sma']/close
-            df_ta['ema_10'] = df_stat['close_10_ema']/close
-            df_ta['ema_20'] = df_stat['close_20_ema']/close
-            df_ta['ema_60'] = df_stat['close_60_ema']/close
+            df_ta['sma_10'] = df_stat['close_10_sma']
+            df_ta['sma_20'] = df_stat['close_20_sma']
+            df_ta['sma_60'] = df_stat['close_60_sma']
+            df_ta['ema_10'] = df_stat['close_10_ema']
+            df_ta['ema_20'] = df_stat['close_20_ema']
+            df_ta['ema_60'] = df_stat['close_60_ema']
             
             df_ta.to_csv(f"{self.path}/price/{code}.csv", encoding='utf-8-sig')
             
@@ -114,7 +114,7 @@ class FinDataLoader:
 if __name__ == "__main__":
     data = FinDataLoader("data")
     
-    # data.load_price_data()
+    data.load_price_data()
     data.labeling(30)
     
     # for code,_ in data.stock_list.items():
