@@ -43,46 +43,96 @@ def load_and_filter_data(code, start_date, end_date):
     
     return filtered_data
 
-
-
-def run_shap_analysis(code, data):
+def run_shap_analysis(code, data, output_bar='result/SHAP_bar_result.png'):
     data_len = len(data)
 
+    # 데이터 분할 및 모델 학습
     train_data = data.iloc[:int(data_len * 0.6), 1:]
     rgr = RandomForestRegressor()
-    rgr = rgr.fit(train_data.iloc[:,:-1],train_data.iloc[:,-1])
+    rgr = rgr.fit(train_data.iloc[:, :-1], train_data.iloc[:, -1])
 
     X = train_data.iloc[:, :-1]
     explainer = shap.Explainer(rgr, X)
     shap_values = explainer(X, check_additivity=False)
 
+    # SHAP 값 계산 및 정렬
+    mean_shap_values = np.abs(shap_values.values).mean(axis=0)
+    sorted_indices = np.argsort(-mean_shap_values)
+    sorted_features = X.columns[sorted_indices]
 
-    mean_shap_values = np.abs(shap_values.values).mean(axis=0)  # 절대값의 평균
-    sorted_indices = np.argsort(-mean_shap_values)  # 중요도 순으로 정렬
-    sorted_features = X.columns[sorted_indices]  # 정렬된 피처 이름
-    sorted_shap_values = shap_values.values[:, sorted_indices]  # 정렬된 SHAP 값
-
-    
-    for feature, importance in zip(sorted_features[:10], mean_shap_values[sorted_indices][:10]): 
+    for feature, importance in zip(sorted_features[:10], mean_shap_values[sorted_indices][:10]):
         shaplist.append(feature)
 
-    print(shaplist[:10])
-    shap.plots.bar(shap_values)
+    print("Top SHAP Features:", shaplist[:10])
+
+    top_shap_values = shap_values[:, np.argsort(-mean_shap_values)[:5]]  # 상위 5개 SHAP 값만 선택
+
+    # SHAP 바 그래프 저장
+    plt.figure(figsize=(12, 8))  # 저장을 위한 전체 그래프 크기 설정
+    
+    shap.plots.bar(top_shap_values, show=False)
+    # shap.summary_plot(shap_values, X, show=False)
+    plt.gcf().set_size_inches(15, 8)  # 크기 설정
+    plt.tight_layout()  # 여백 자동 조정
+    plt.savefig(output_bar, bbox_inches='tight')  # 그래프 저장
+    plt.close()
+    print(f"SHAP bar graph saved to: {output_bar}")
 
 
 
-def show_bar(code,start_date,end_date):
-    run_shap_analysis(code, load_and_filter_data(code, start_date, end_date))
 
-def show_chart():
+
+def show_chart(code, start_date, end_date, output_chart='result/SHAP_char_result.png'):
+    # stockindex 생성
     for item in shaplist:
         if item in ['sma_10', 'sma_20', 'sma_60', 'ema_10', 'ema_20', 'ema_60']:
             stockindex.append(item)
         else:
             f_s.append(item)
 
+    # 데이터 로드 및 날짜 필터링
+    df = pd.read_csv(f"data/price/{code}.csv", parse_dates=["Date"], index_col="Date")
+    filtered_data = df[(df.index >= start_date) & (df.index <= end_date)]
+
+    # Close 데이터와 stockindex 중 앞 3개 값만 사용
+    selected_columns = ["Close"] + stockindex[:3]
+    filtered_data = filtered_data[selected_columns]
+
+    # 그래프 그리기
+    plt.figure(figsize=(12, 6))
+    for column in stockindex[:3]:
+        plt.plot(filtered_data.index, filtered_data[column], label=column, linestyle='--')
+    plt.plot(filtered_data.index, filtered_data["Close"], label="Close Price", color='red', linestyle='-')
+
+    # 그래프 설정 및 저장
+    plt.title(f"{code} Stock Chart ({start_date} - {end_date})")
+    plt.xlabel("Date")
+    plt.ylabel("Price (KRW)")
+    plt.legend()
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+
+    plt.savefig(output_chart)
+    plt.close()
+    print(f"Stock chart saved to: {output_chart}")
 
 
-show_bar('005930', '2016-02-01', '2022-01-01')
+def show(code, start_date, end_date):
+    # 결과 저장 경로
+    output_bar = 'result/SHAP_bar_result.png'
+    output_chart = 'result/SHAP_char_result.png'
 
+    # 폴더 생성 (없을 경우)
+    import os
+    os.makedirs('result', exist_ok=True)
 
+    # SHAP 분석 및 저장
+    run_shap_analysis(code, load_and_filter_data(code, start_date, end_date), output_bar)
+
+    # 선 그래프 생성 및 저장
+    show_chart(code, start_date, end_date, output_chart)
+
+    print("Top Stock Indices:", stockindex[:3])
+
+# 실행
+show('005930', '2020-02-01', '2022-01-01')
