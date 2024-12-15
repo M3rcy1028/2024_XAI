@@ -23,6 +23,10 @@ elif platform.system() == 'Darwin':  # macOS
 mpl.rcParams['axes.unicode_minus'] = False
 
 
+shaplist = []
+stockindex = []
+f_s = []
+
 
 def load_and_filter_data(code, start_date, end_date):
     data_loader = FinDataLoader(path="data")  # 경로 지정
@@ -41,18 +45,12 @@ def load_and_filter_data(code, start_date, end_date):
 
 
 
-
-
 def run_shap_analysis(code, data):
     data_len = len(data)
 
     train_data = data.iloc[:int(data_len * 0.6), 1:]
     rgr = RandomForestRegressor()
     rgr = rgr.fit(train_data.iloc[:,:-1],train_data.iloc[:,-1])
-
-    with open(f'model/{code}_model_shap.pkl', 'wb') as f:
-        pickle.dump(rgr, f)
-
 
     X = train_data.iloc[:, :-1]
     explainer = shap.Explainer(rgr, X)
@@ -64,12 +62,27 @@ def run_shap_analysis(code, data):
     sorted_features = X.columns[sorted_indices]  # 정렬된 피처 이름
     sorted_shap_values = shap_values.values[:, sorted_indices]  # 정렬된 SHAP 값
 
-    shaplist = []
+    
     for feature, importance in zip(sorted_features[:10], mean_shap_values[sorted_indices][:10]): 
         shaplist.append(feature)
 
-    print(shaplist[:3])
-    shap.summary_plot(shap_values, X, plot_type="dot")
+    print(shaplist[:10])
+    shap.plots.bar(shap_values)
 
 
-run_shap_analysis('005930', load_and_filter_data('005930', '2016-02-01', '2022-01-01'))
+
+def show_bar(code,start_date,end_date):
+    run_shap_analysis(code, load_and_filter_data(code, start_date, end_date))
+
+def show_chart():
+    for item in shaplist:
+        if item in ['sma_10', 'sma_20', 'sma_60', 'ema_10', 'ema_20', 'ema_60']:
+            stockindex.append(item)
+        else:
+            f_s.append(item)
+
+
+
+show_bar('005930', '2016-02-01', '2022-01-01')
+
+
