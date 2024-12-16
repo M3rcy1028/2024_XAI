@@ -3,6 +3,7 @@ from stock_chart import StockChart
 from infoWindow import WindowClass2
 from expWindow import WindowClass3
 from lime_explanation import run_lime_analysis
+from SHAP_explanation import run_shap_analysis, load_and_filter_data
 
 # import ui file
 form_class = uic.loadUiType("./XAI_GUI.ui")[0]
@@ -36,7 +37,7 @@ class WindowClass(QMainWindow, form_class):
         self.logButton.setIcon(QIcon("./design/log.png"))
         self.Widget1_image = "./result/StockChart.png"
         self.Widget2_image = "./result/lime_explanation.png"
-        self.Widget3_image = "./result/LIME_result.png"
+        self.Widget3_image = "./result/SHAP_bar_result.png"
         self.force = 0
         #### time
         self.timer = QTimer()
@@ -87,7 +88,7 @@ class WindowClass(QMainWindow, form_class):
         self.SetDateEdit()
         self.StockComboBox.setCurrentIndex(0)
         # widget settings
-        self.InitWidet()
+        self.InitWidget()
 
     def __exit__(self):  # [Exit]
         self.CloseWidget()
@@ -246,59 +247,66 @@ class WindowClass(QMainWindow, form_class):
                                     enddate=self.edate.toPyDate())
         except Exception as e:
             self.printLog(record=str(e))
-        self.InitWidet()  # update widgets
+        self.InitWidget()  # update widgets
         self.OpenWidget()  # open new result widgets
         # self.SetLLM(self.StockName)
 
     #### End of Button Function ####
 
-    def InitWidet(self):
+    def InitWidget(self):
         self.Widget1_init()
         self.Widget2_init()
         self.Widget3_init()
 
     def OpenWidget(self):  # open selected widgets
+
         if self.Chart_checkBox.isChecked():
             self.Widget1_exec()
             self.printLog(record="prediction chart selected")
+
         if self.Candle_checkBox.isChecked() and self.chart:
             self.chart.show(block=False)
             self.printLog(record="candle chart selected")
+
+        # 위젯 출력 전 변수 처리
+        start_date = self.StartDate.date().toString("yyyy-MM-dd")
+        end_date = self.EndDate.date().toString("yyyy-MM-dd")
+        stock_name = self.StockComboBox.currentText()
+        code = re.search(r':(\d+)', stock_name).group(1)
+        lime_image = "./result/lime_explanation.png"
+        shap_image = "./result/SHAP_bar_result.png"
+
         if self.LIME_checkBox.isChecked() and self.SHAP_checkBox.isChecked():
-            start_date = self.StartDate.date().toString("yyyy-MM-dd")
-            end_date = self.EndDate.date().toString("yyyy-MM-dd")
-
-            stock_name = self.StockComboBox.currentText()
-            code = re.search(r':(\d+)', stock_name).group(1)
-
-            output_file = "./result/lime_explanation.png"
             try:
-                result_image = run_lime_analysis(code, start_date, end_date, output_file=output_file)
-                self.Widget2_image = result_image  # 결과 이미지 업데이트
+                lime_result_image = run_lime_analysis(code, start_date, end_date, output_file=lime_image)
+                shap_result_image = run_shap_analysis(code, load_and_filter_data(code, start_date, end_date), output_file=shap_image)
+                # 결과 이미지 업데이트
+                self.Widget2_image = lime_result_image
+                self.Widget3_image = shap_result_image
             except Exception as e:
-                self.printLog(record=f"LIME 실행 오류: {e}")
+                self.printLog(record=f"LIME, SHAP 실행 오류: {e}")
                 return
-            self.Widget2_exec()
-            self.Widget3_exec()
+            self.Widget2_exec()  # lime widget 실행
+            self.Widget3_exec()  # SHAP widget 실행
             self.printLog(record="LIME/SHAP selected")
         elif self.LIME_checkBox.isChecked() == False and self.SHAP_checkBox.isChecked():
-            self.Widget2_exec("SHAP", "./design/shap.png")
+            try:
+                shap_result_image = run_shap_analysis(code, load_and_filter_data(code, start_date, end_date), output_file=shap_image)
+                # 결과 이미지 업데이트
+                self.Widget3_image = shap_result_image
+            except Exception as e:
+                self.printLog(record=f"SHAP 실행 오류: {e}")
+                return
+            self.Widget3_exec()  # SHAP widget 실행
             self.printLog(record="SHAP selected")
         elif self.LIME_checkBox.isChecked() and self.SHAP_checkBox.isChecked() == False:
-            start_date = self.StartDate.date().toString("yyyy-MM-dd")
-            end_date = self.EndDate.date().toString("yyyy-MM-dd")
-
-            stock_name = self.StockComboBox.currentText()
-            code = re.search(r':(\d+)', stock_name).group(1)
-
-            output_file = "./result/lime_explanation.png"
             try:
-                result_image = run_lime_analysis(code, start_date, end_date, output_file=output_file)
+                result_image = run_lime_analysis(code, start_date, end_date, output_file=lime_image)
                 self.Widget2_image = result_image  # 결과 이미지 업데이트
             except Exception as e:
                 self.printLog(record=f"LIME 실행 오류: {e}")
                 return
-            self.Widget2_exec()
+            self.Widget2_exec()  # lime widget 실행
             self.printLog(record="LIME selected")
 
     def CloseWidget(self):  # close all the opend widgets w/o main
@@ -384,12 +392,13 @@ class WindowClass(QMainWindow, form_class):
         wd2_geometry = self.Widget2.geometry()
         wd2_x = wd2_geometry.x()
         wd2_y = wd2_geometry.y()
+        wd2_width = wd2_geometry.width()
         wd2_height = wd2_geometry.height()
         self.Widget3 = QWidget()
         self.Widget3.resize(400, 300)
         self.Widget3.setMinimumSize(100, 100)
         # right side of widget2
-        self.Widget3.move(wd2_x + 400, wd2_y)
+        self.Widget3.move(wd2_x + wd2_width, wd2_y - wd2_height)
         Widget3layout = QVBoxLayout()
         self.Widget3.setLayout(Widget3layout)
         # add image
@@ -400,6 +409,10 @@ class WindowClass(QMainWindow, form_class):
         Widget3layout.addWidget(wd3label)  # add new layout
 
     def Widget3_exec(self, title="SHAP", icon="./design/shap.png"):
+
+        if hasattr(self, "Widget3") and self.Widget3.isVisible():
+            self.Widget3.close()
+
         self.Widget3.setWindowTitle(title)
         self.Widget3.setWindowIcon(QIcon(icon))
         self.Widget3.show()
