@@ -3,7 +3,7 @@ from stock_chart import StockChart
 from infoWindow import WindowClass2
 from expWindow import WindowClass3
 from lime_explanation import run_lime_analysis
-from SHAP_explanation import run_shap_analysis, load_and_filter_data
+from SHAP_explanation import run_shap_analysis, load_and_filter_data, show
 
 # import ui file
 form_class = uic.loadUiType("./XAI_GUI.ui")[0]
