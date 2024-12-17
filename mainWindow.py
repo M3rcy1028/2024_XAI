@@ -128,10 +128,10 @@ class WindowClass(QMainWindow, form_class):
     #     self.LLM_text.setText("\n" + content)
 
     def SetComboBox(self):  # insert stocks into comboBox
-        self.StockComboBox.addItem("SK하이닉스 (KRX:000660)")
         self.StockComboBox.addItem("삼성전자 (KRX:005930)")
         self.StockComboBox.addItem("엔씨소프트 (KRX:036570)")
         self.StockComboBox.addItem("KB금융 (KRX:105560)")
+        self.StockComboBox.addItem("SK하이닉스 (KRX:000660)")
 
     def SetDateEdit(self):
         '''
@@ -203,6 +203,24 @@ class WindowClass(QMainWindow, form_class):
         self.CloseWidget()
         self.DataProcessing()
         self.GenerateResult()
+
+        start_date = self.StartDate.date().toString("yyyy-MM-dd")
+        end_date = self.EndDate.date().toString("yyyy-MM-dd")
+        stock_name = self.StockComboBox.currentText()
+        code = re.search(r':(\d+)', stock_name).group(1)
+        lime_image = "./result/lime_explanation.png"
+        shap_image = "./result/SHAP_bar_result.png"
+
+        try:
+            lime_result_image, _ = run_lime_analysis(code, start_date, end_date, output_file=lime_image)
+            shap_result_image = run_shap_analysis(code, load_and_filter_data(code, start_date, end_date),
+                                                  output_file=shap_image)
+            # 결과 이미지 업데이트
+            self.Widget2_image = lime_result_image
+            self.Widget3_image = shap_result_image
+        except Exception as e:
+            self.printLog(record=f"LIME, SHAP 실행 오류: {e}")
+
         self.ProgressLoading()
         self.printLog(record="Data submitted")
 
@@ -268,44 +286,14 @@ class WindowClass(QMainWindow, form_class):
             self.chart.show(block=False)
             self.printLog(record="candle chart selected")
 
-        # 위젯 출력 전 변수 처리
-        start_date = self.StartDate.date().toString("yyyy-MM-dd")
-        end_date = self.EndDate.date().toString("yyyy-MM-dd")
-        stock_name = self.StockComboBox.currentText()
-        code = re.search(r':(\d+)', stock_name).group(1)
-        lime_image = "./result/lime_explanation.png"
-        shap_image = "./result/SHAP_bar_result.png"
-
         if self.LIME_checkBox.isChecked() and self.SHAP_checkBox.isChecked():
-            try:
-                lime_result_image = run_lime_analysis(code, start_date, end_date, output_file=lime_image)
-                shap_result_image = run_shap_analysis(code, load_and_filter_data(code, start_date, end_date), output_file=shap_image)
-                # 결과 이미지 업데이트
-                self.Widget2_image = lime_result_image
-                self.Widget3_image = shap_result_image
-            except Exception as e:
-                self.printLog(record=f"LIME, SHAP 실행 오류: {e}")
-                return
             self.Widget2_exec()  # lime widget 실행
             self.Widget3_exec()  # SHAP widget 실행
             self.printLog(record="LIME/SHAP selected")
         elif self.LIME_checkBox.isChecked() == False and self.SHAP_checkBox.isChecked():
-            try:
-                shap_result_image = run_shap_analysis(code, load_and_filter_data(code, start_date, end_date), output_file=shap_image)
-                # 결과 이미지 업데이트
-                self.Widget3_image = shap_result_image
-            except Exception as e:
-                self.printLog(record=f"SHAP 실행 오류: {e}")
-                return
             self.Widget3_exec()  # SHAP widget 실행
             self.printLog(record="SHAP selected")
         elif self.LIME_checkBox.isChecked() and self.SHAP_checkBox.isChecked() == False:
-            try:
-                result_image = run_lime_analysis(code, start_date, end_date, output_file=lime_image)
-                self.Widget2_image = result_image  # 결과 이미지 업데이트
-            except Exception as e:
-                self.printLog(record=f"LIME 실행 오류: {e}")
-                return
             self.Widget2_exec()  # lime widget 실행
             self.printLog(record="LIME selected")
 
