@@ -409,9 +409,25 @@ class WindowClass(QMainWindow, form_class):
         Widget3layout.addWidget(wd3label)  # add new layout
 
     def Widget3_exec(self, title="SHAP", icon="./design/shap.png"):
+        self.Widget3_image = "./result/SHAP_bar_result.png"
 
         if hasattr(self, "Widget3") and self.Widget3.isVisible():
             self.Widget3.close()
+
+        self.Widget3 = QWidget()
+        self.Widget3.resize(400, 300)
+        self.Widget3.setMinimumSize(100, 100)
+
+        shap_pixmap = QPixmap(self.Widget3_image)
+        if shap_pixmap.isNull():
+            print(f"Error: Unable to load image from {self.Widget3_image}")
+        shap_label = QLabel()
+        shap_label.setPixmap(shap_pixmap)
+        shap_label.setScaledContents(True)
+
+        Widget3layout = QVBoxLayout()
+        Widget3layout.addWidget(shap_label)
+        self.Widget3.setLayout(Widget3layout)
 
         self.Widget3.setWindowTitle(title)
         self.Widget3.setWindowIcon(QIcon(icon))
