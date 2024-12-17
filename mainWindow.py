@@ -38,6 +38,7 @@ class WindowClass(QMainWindow, form_class):
         self.Widget1_image = "./result/StockChart.png"
         self.Widget2_image = "./result/lime_explanation.png"
         self.Widget3_image = "./result/SHAP_bar_result.png"
+        self.Widget4_image = "./result/SHAP_char_result.png"
         self.force = 0
         #### time
         self.timer = QTimer()
@@ -213,11 +214,11 @@ class WindowClass(QMainWindow, form_class):
 
         try:
             lime_result_image, _ = run_lime_analysis(code, start_date, end_date, output_file=lime_image)
-            shap_result_image = run_shap_analysis(code, load_and_filter_data(code, start_date, end_date),
-                                                  output_file=shap_image)
+            shap_result_image1, shap_result_image2 = show(code, start_date, end_date)
             # 결과 이미지 업데이트
             self.Widget2_image = lime_result_image
-            self.Widget3_image = shap_result_image
+            self.Widget3_image = shap_result_image1
+            self.Widget4_image = shap_result_image2
         except Exception as e:
             self.printLog(record=f"LIME, SHAP 실행 오류: {e}")
 
@@ -275,6 +276,7 @@ class WindowClass(QMainWindow, form_class):
         self.Widget1_init()
         self.Widget2_init()
         self.Widget3_init()
+        self.Widget4_init()
 
     def OpenWidget(self):  # open selected widgets
 
@@ -289,9 +291,11 @@ class WindowClass(QMainWindow, form_class):
         if self.LIME_checkBox.isChecked() and self.SHAP_checkBox.isChecked():
             self.Widget2_exec()  # lime widget 실행
             self.Widget3_exec()  # SHAP widget 실행
+            self.Widget4_exec()  # SHAP widget 실행
             self.printLog(record="LIME/SHAP selected")
         elif self.LIME_checkBox.isChecked() == False and self.SHAP_checkBox.isChecked():
             self.Widget3_exec()  # SHAP widget 실행
+            self.Widget4_exec()  # SHAP widget 실행
             self.printLog(record="SHAP selected")
         elif self.LIME_checkBox.isChecked() and self.SHAP_checkBox.isChecked() == False:
             self.Widget2_exec()  # lime widget 실행
@@ -302,6 +306,7 @@ class WindowClass(QMainWindow, form_class):
         self.Widget1.close()
         self.Widget2.close()
         self.Widget3.close()
+        self.Widget4.close()
         '''
             Close lightweight chart
             If a user wants to update or re-display this chart,
@@ -420,6 +425,52 @@ class WindowClass(QMainWindow, form_class):
         self.Widget3.setWindowTitle(title)
         self.Widget3.setWindowIcon(QIcon(icon))
         self.Widget3.show()
+
+    def Widget4_init(self):
+        # get position of widget2
+        wd2_geometry = self.Widget2.geometry()
+        wd2_x = wd2_geometry.x()
+        wd2_y = wd2_geometry.y()
+        wd2_width = wd2_geometry.width()
+        wd2_height = wd2_geometry.height()
+        self.Widget4 = QWidget()
+        self.Widget4.resize(400, 300)
+        self.Widget4.setMinimumSize(100, 100)
+        # right side of widget2
+        self.Widget4.move(wd2_x + wd2_width, wd2_y - wd2_height)
+        Widget4layout = QVBoxLayout()
+        self.Widget4.setLayout(Widget4layout)
+        # add image
+        wd4pixmap = QPixmap(self.Widget4_image)
+        wd4label = QLabel()
+        wd4label.setPixmap(wd4pixmap)
+        wd4label.setScaledContents(True)
+        Widget4layout.addWidget(wd4label)  # add new layout
+
+    def Widget4_exec(self, title="SHAP", icon="./design/shap.png"):
+        self.Widget4_image = "./result/SHAP_char_result.png"
+
+        if hasattr(self, "Widget4") and self.Widget4.isVisible():
+            self.Widget4.close()
+
+        self.Widget4 = QWidget()
+        self.Widget4.resize(400, 300)
+        self.Widget4.setMinimumSize(100, 100)
+
+        shap_pixmap = QPixmap(self.Widget4_image)
+        if shap_pixmap.isNull():
+            print(f"Error: Unable to load image from {self.Widget4_image}")
+        shap_label = QLabel()
+        shap_label.setPixmap(shap_pixmap)
+        shap_label.setScaledContents(True)
+
+        Widget4layout = QVBoxLayout()
+        Widget4layout.addWidget(shap_label)
+        self.Widget4.setLayout(Widget4layout)
+
+        self.Widget4.setWindowTitle(title)
+        self.Widget4.setWindowIcon(QIcon(icon))
+        self.Widget4.show()
 
     def CalendarWidget(self):
         self.CalendarWidget = QWidget()

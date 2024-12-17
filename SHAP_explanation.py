@@ -59,11 +59,14 @@ def run_shap_analysis(code, data, output_file='result/SHAP_bar_result.png'):
     sorted_indices = np.argsort(np.abs(mean_shap_values))
     sorted_features = X.columns[sorted_indices]
 
+    for feature, importance in zip(sorted_features[:10], mean_shap_values[sorted_indices][:10]):
+        shaplist.append(feature)
+
     top_features = sorted_features[:5]
     top_shap_values = mean_shap_values[sorted_indices][:5]
 
     print("Top SHAP Features (Top 5):", list(zip(top_features, top_shap_values)))
-
+    shap.summary_plot(shap_values, X)
     # SHAP 바 그래프 저장
     plt.figure(figsize=(8, 5))  # 저장을 위한 전체 그래프 크기 설정
     plt.barh(
@@ -135,3 +138,8 @@ def show(code, start_date, end_date):
     show_chart(code, start_date, end_date, output_chart)
 
     print("Top Stock Indices:", stockindex[:3])
+    print(shaplist)
+    return output_bar, output_chart
+
+
+show("005930", "2021-01-01", "2023-12-31")
