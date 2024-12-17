@@ -120,6 +120,7 @@ def run_lime_analysis(code, start_date, end_date, alpha=0.1, beta=-0.05, output_
     explanations = []
     instance_dates = []
     predictions = []
+    selected_features = []
 
     signal_dates = list(set(buy_dates + sell_dates))
     signal_dates = sorted(signal_dates)[-4:]  # 최근 4개 데이터 선택
@@ -139,9 +140,20 @@ def run_lime_analysis(code, start_date, end_date, alpha=0.1, beta=-0.05, output_
         prediction = model.predict([instance])[0]
         explanation = explainer.explain_instance(instance, model.predict, num_features=5)
 
+        lime_data = explanation.as_list()
+        lime_features = [
+            ' '.join([word for word in re.split(r'[\s<><=]+', item[0]) if not re.match(r'^[-+]?\d*\.?\d+$', word)])
+            for item in lime_data
+        ]
+        selected_features.append(lime_features)
+
         explanations.append(explanation)
         instance_dates.append(instance_date)
         predictions.append(prediction)
 
+    selected_features = list(set(feature for sublist in selected_features for feature in sublist))
     plot_lime(explanations, instance_dates, predictions, output_file)
-    return output_file
+
+    print(f"Selected: {selected_features}")
+
+    return output_file, selected_features

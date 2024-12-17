@@ -202,6 +202,24 @@ class WindowClass(QMainWindow, form_class):
         self.CloseWidget()
         self.DataProcessing()
         self.GenerateResult()
+
+        # LIME
+        start_date = self.StartDate.date().toString("yyyy-MM-dd")
+        end_date = self.EndDate.date().toString("yyyy-MM-dd")
+
+        stock_name = self.StockComboBox.currentText()
+        code_match = re.search(r':(\d+)', stock_name)
+
+        if not code_match:
+            raise ValueError("Stock code not found in the selected stock name.")
+
+        code = code_match.group(1)
+        print(f"Running LIME Analysis for Code: {code}, Start: {start_date}, End: {end_date}")
+
+        # LIME 실행 및 결과 이미지 저장
+        output_file, selected_features = run_lime_analysis(code, start_date, end_date,
+                                                           output_file="./result/lime_explanation.png")
+        self.Widget2_image = output_file
         self.ProgressLoading()
         self.printLog(record="Data submitted")
 
@@ -265,19 +283,6 @@ class WindowClass(QMainWindow, form_class):
             self.chart.show(block=False)
             self.printLog(record="candle chart selected")
         if self.LIME_checkBox.isChecked() and self.SHAP_checkBox.isChecked():
-            start_date = self.StartDate.date().toString("yyyy-MM-dd")
-            end_date = self.EndDate.date().toString("yyyy-MM-dd")
-
-            stock_name = self.StockComboBox.currentText()
-            code = re.search(r':(\d+)', stock_name).group(1)
-
-            output_file = "./result/lime_explanation.png"
-            try:
-                result_image = run_lime_analysis(code, start_date, end_date, output_file=output_file)
-                self.Widget2_image = result_image  # 결과 이미지 업데이트
-            except Exception as e:
-                self.printLog(record=f"LIME 실행 오류: {e}")
-                return
             self.Widget2_exec()
             self.Widget3_exec()
             self.printLog(record="LIME/SHAP selected")
@@ -285,19 +290,6 @@ class WindowClass(QMainWindow, form_class):
             self.Widget2_exec("SHAP", "./design/shap.png")
             self.printLog(record="SHAP selected")
         elif self.LIME_checkBox.isChecked() and self.SHAP_checkBox.isChecked() == False:
-            start_date = self.StartDate.date().toString("yyyy-MM-dd")
-            end_date = self.EndDate.date().toString("yyyy-MM-dd")
-
-            stock_name = self.StockComboBox.currentText()
-            code = re.search(r':(\d+)', stock_name).group(1)
-
-            output_file = "./result/lime_explanation.png"
-            try:
-                result_image = run_lime_analysis(code, start_date, end_date, output_file=output_file)
-                self.Widget2_image = result_image  # 결과 이미지 업데이트
-            except Exception as e:
-                self.printLog(record=f"LIME 실행 오류: {e}")
-                return
             self.Widget2_exec()
             self.printLog(record="LIME selected")
 
@@ -431,7 +423,7 @@ class WindowClass(QMainWindow, form_class):
         self.LogWidget = QWidget()
         self.LogWidget.resize(self.main_width, 100)
         self.LogWidget.setMinimumSize(100, 100)
-        # above main 
+        # above main
         self.LogWidget.move(self.main_x, self.main_y - 130)
         LogLayout = QVBoxLayout()
         self.LogWidget.setLayout(LogLayout)
