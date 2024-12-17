@@ -333,6 +333,24 @@ class WindowClass(QMainWindow, form_class):
         '''
 
     def Widget1_exec(self, title="Stock Chart", icon="./design/stockchart.png"):
+        self.Widget1_image = "./result/StockChart2.png"
+
+        if hasattr(self, "Widget1") and self.Widget1.isVisible():
+            self.Widget1.close()
+
+        self.Widget1 = QWidget()
+        self.Widget1.resize(900, 600)
+        self.Widget1.setMinimumSize(100, 100)
+
+        predict_pixmap = QPixmap(self.Widget1_image)
+        predict_label = QLabel()
+        predict_label.setPixmap(predict_pixmap)
+        predict_label.setScaledContents(True)
+
+        Widget1layout = QVBoxLayout()
+        Widget1layout.addWidget(predict_label)
+        self.Widget1.setLayout(Widget1layout)
+
         self.Widget1.setWindowTitle(title)
         self.Widget1.setWindowIcon(QIcon(icon))
         self.Widget1.show()
