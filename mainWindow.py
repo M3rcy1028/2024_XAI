@@ -4,6 +4,7 @@ from infoWindow import WindowClass2
 from expWindow import WindowClass3
 from lime_explanation import run_lime_analysis
 from SHAP_explanation import run_shap_analysis, load_and_filter_data
+import json
 
 # import ui file
 form_class = uic.loadUiType("./XAI_GUI.ui")[0]
@@ -196,10 +197,7 @@ class WindowClass(QMainWindow, form_class):
         formatted_time = datetime.now().strftime("%A, %B %d, %Y, %I:%M:%S %p")
         self.statusBar.showMessage(formatted_time)
 
-        #### Define Button Function ####
-
-    def InputButton(self):  # [Confirm]
-        # self.SetLLM()
+    def InputButton(self):
         self.CloseWidget()
         self.DataProcessing()
         self.GenerateResult()
@@ -212,14 +210,28 @@ class WindowClass(QMainWindow, form_class):
         shap_image = "./result/SHAP_bar_result.png"
 
         try:
-            lime_result_image, _ = run_lime_analysis(code, start_date, end_date, output_file=lime_image)
-            shap_result_image = run_shap_analysis(code, load_and_filter_data(code, start_date, end_date),
-                                                  output_file=shap_image)
-            # 결과 이미지 업데이트
+            lime_result_image, selected_features, explanation_dict = run_lime_analysis(
+                code,
+                start_date,
+                end_date,
+                output_file=lime_image
+            )
+            shap_result_image = run_shap_analysis(
+                code, 
+                load_and_filter_data(code, start_date, end_date),
+                output_file=shap_image
+            )
+
             self.Widget2_image = lime_result_image
             self.Widget3_image = shap_result_image
+
+            self.exp_window = WindowClass3(explanation_dict=explanation_dict)
+            self.exp_window.initText()
+            self.exp_window.show()
+
         except Exception as e:
             self.printLog(record=f"LIME, SHAP 실행 오류: {e}")
+
 
         self.ProgressLoading()
         self.printLog(record="Data submitted")
