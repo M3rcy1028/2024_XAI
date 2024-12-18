@@ -3,7 +3,7 @@ from stock_chart import StockChart
 from infoWindow import WindowClass2
 from expWindow import WindowClass3
 from lime_explanation import run_lime_analysis
-from SHAP_explanation import run_shap_analysis, load_and_filter_data, show
+from SHAP_explanation import show
 import json
 
 # import ui file
@@ -212,7 +212,7 @@ class WindowClass(QMainWindow, form_class):
         formatted_time = datetime.now().strftime("%A, %B %d, %Y, %I:%M:%S %p")
         self.statusBar.showMessage(formatted_time)
 
-    def InputButton(self):
+    def InputButton(self):  # [confirm]
         self.CloseWidget()
         self.DataProcessing()
         self.GenerateResult()
@@ -231,11 +231,6 @@ class WindowClass(QMainWindow, form_class):
                 end_date,
                 output_file=lime_image
             )
-            # shap_result_image = run_shap_analysis(
-            #     code, 
-            #     load_and_filter_data(code, start_date, end_date),
-            #     output_file=shap_image
-            # )
             shap_result_image1, shap_result_image2, explanation_dict_shap = show(code, start_date, end_date)
 
             self.Widget2_image = lime_result_image
