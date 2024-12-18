@@ -21,9 +21,9 @@ elif platform.system() == 'Darwin':  # macOS
     plt.rcParams['font.family'] = 'AppleGothic'
 mpl.rcParams['axes.unicode_minus'] = False
 
-shaplist = []
-stockindex = []
-f_s = []
+shaplist = [] # SHAP 중요도 순서 리스트
+stockindex = [] #주가 지표 리스트
+f_s = [] #재무제표 리스트
 
 
 def load_and_filter_data(code, start_date, end_date):
@@ -69,27 +69,11 @@ def run_shap_analysis(code, data, output_file='result/SHAP_bar_result.png'):
     # 정렬된 피처를 shaplist에 하나씩 추가
     for feature in sorted(shap_importance_dict, key=shap_importance_dict.get, reverse=True):
         shaplist.append(feature)
-
-
-    # 이름과 값을 묶어서 DataFrame 생성
-    shap_df = pd.DataFrame({
-        'Feature': X.columns,
-        'SHAP Value': mean_shap_values
-    })
-    # 중요도에 따라 정렬 (절댓값 기준 내림차순)
-    shap_df = shap_df.reindex(shap_df['SHAP Value'].abs().sort_values(ascending=False).index)
-    # 결과 출력
-    print("All SHAP Features and Values:")
-    print(shap_df)
     
 
     top_features = shaplist[:5]  # 상위 5개 피처 이름
 
     top_shap_values = [mean_shap_values[X.columns.get_loc(feature)] for feature in top_features]  # top_features에 맞는 SHAP 값 추출
-    
-    print("Top SHAP Features (Top 5):", list(zip(top_features, top_shap_values)))
-    
- 
     
     # SHAP 바 그래프 저장
     plt.figure(figsize=(8, 5))  # 저장을 위한 전체 그래프 크기 설정
@@ -106,7 +90,7 @@ def run_shap_analysis(code, data, output_file='result/SHAP_bar_result.png'):
     plt.close()
     print(f"SHAP bar graph saved to: {output_file}")
 
-    shap.summary_plot(shap_values, X)
+    # shap.summary_plot(shap_values, X)
     return output_file
 
 
@@ -158,12 +142,12 @@ def show(code, start_date, end_date):
 
     # SHAP 분석 및 저장
     run_shap_analysis(code, load_and_filter_data(code, start_date, end_date), output_bar)
+    print("SHAP:",shaplist[:5])
 
     # 선 그래프 생성 및 저장
     show_chart(code, start_date, end_date, output_chart)
 
-    print("Top Stock Indices:", stockindex[:3])
     return output_bar, output_chart
 
 
-show("005930", "2022-01-01", "2023-12-31")
+# show("005930", "2022-01-01", "2023-12-31")
