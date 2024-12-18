@@ -1,4 +1,5 @@
 from module import *
+from lime_explanation import *
 
 # import ui file
 form_class3 = uic.loadUiType("./EXP_GUI.ui")[0]

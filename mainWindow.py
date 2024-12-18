@@ -139,6 +139,7 @@ class WindowClass(QMainWindow, form_class):
     def SetComboBox(self):  # insert stocks into comboBox
         self.StockComboBox.addItem("삼성전자 (KRX:005930)")
         self.StockComboBox.addItem("엔씨소프트 (KRX:036570)")
+        self.StockComboBox.addItem("SK하이닉스 (KRX:000660)")
         self.StockComboBox.addItem("KB금융 (KRX:105560)")
         self.StockComboBox.addItem("SK하이닉스 (KRX:000660)")
 
@@ -147,10 +148,17 @@ class WindowClass(QMainWindow, form_class):
             Initialize Start/End Date based on 
             User Defined Date/Q1/Q2/Q3/Q4
         '''
+        '''
         CurrentDate = datetime.now()
         year = CurrentDate.year
         d1 = QDate(year - 2, CurrentDate.month, CurrentDate.day)
         d2 = QDate(year, CurrentDate.month, CurrentDate.day)
+        '''
+        year = 2024
+        month = 7
+        day = 1
+        d1 = QDate(year - 2, month, day);
+        d2 = QDate(year, month, day)
         if self.Q1_radioButton.isChecked():
             d1 = QDate(year, 1, 1)
             d2 = QDate(year, 3, 31)
