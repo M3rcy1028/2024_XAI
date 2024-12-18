@@ -31,17 +31,18 @@ class WindowClass3(QDockWidget, form_class3):
         if self.explanation_dict_lime is not None:
             lines = []
             for key, value in self.explanation_dict_lime.items():
-                lines.append(f"{key}: {value}")
-            pretty_text = "\n".join(lines)
+                lines.append(f"&gt; <b>{key}</b><br>{value}")
+            pretty_text = "<br><br>".join(lines)
             self.LIME_text.setText(pretty_text)
+
         else:
             self.LIME_text.setText("No explanation available")
 
         if self.explanation_dict_shap is not None:
             lines = []
             for key, value in self.explanation_dict_shap.items():
-                lines.append(f"{key}: {value}")
-            pretty_text = "\n".join(lines)
+                lines.append(f"&gt; <b>{key}</b><br>{value}")
+            pretty_text = "<br><br>".join(lines)
             self.SHAP_text.setText(pretty_text)
 
         else:
