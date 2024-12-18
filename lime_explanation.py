@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import re
 import platform
+import csv
 
 # 한글 폰트 설정
 if platform.system() == 'Windows':
@@ -154,6 +155,20 @@ def run_lime_analysis(code, start_date, end_date, alpha=0.1, beta=-0.05, output_
     selected_features = list(set(feature for sublist in selected_features for feature in sublist))
     plot_lime(explanations, instance_dates, predictions, output_file)
 
-    print(f"Selected: {selected_features}")
+    # CSV 파일에서 설명을 딕셔너리에 담기
+    explanation_dict = {}
+    with open('data/feature_explain.csv', 'r', encoding='utf-8') as f:
+        reader = csv.reader(f)
+        for row in reader:
+            if len(row) < 2:
+                continue
+            feature = row[0].strip()
+            explanation = row[1].strip()
 
-    return output_file, selected_features
+            if feature in selected_features:
+                explanation_dict[feature] = explanation
+
+    print(f"Selected: {selected_features}")
+    print(f"Selected2: {explanation_dict}")
+    
+    return output_file, selected_features, explanation_dict
