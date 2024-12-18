@@ -428,7 +428,7 @@ class WindowClass(QMainWindow, form_class):
             self.Widget3.close()
 
         self.Widget3 = QWidget()
-        self.Widget3.resize(400, 300)
+        self.Widget3.resize(600, 500)
         self.Widget3.setMinimumSize(100, 100)
 
         shap_pixmap = QPixmap(self.Widget3_image)

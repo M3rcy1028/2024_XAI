@@ -128,10 +128,10 @@ def plotLineChart(df, stockname, sdate, edate, outputfile = './result/StockChart
     plt.figure(figsize=(12, 6))
 
     # 실제 종가
-    plt.plot(output_actual_df.index, output_actual_df['Close'], label='Actual Close Price', color='r', linewidth=2, linestyle='--')
+    plt.plot(output_actual_df.index, output_actual_df['Close'], label='Actual Close Price', color='g', linewidth=2, linestyle='--')
 
     # 예측 종가
-    plt.plot(predict_df.index, predict_df['Predicted_Close'], label='Predicted Close', color='g', linewidth=2)
+    plt.plot(predict_df.index, predict_df['Predicted_Close'], label='Predicted Close', color='r', linewidth=2)
 
     plt.title(label_title + f" ({sdate} - {edate})")
     plt.xlabel('Date')
