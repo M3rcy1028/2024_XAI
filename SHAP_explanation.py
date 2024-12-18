@@ -13,6 +13,7 @@ from stockstats import wrap
 from FinDataLoader import FinDataLoader
 from datetime import datetime
 import pandas as pd
+import csv
 
 # 한글 폰트 설정
 if platform.system() == 'Windows':
@@ -143,11 +144,28 @@ def show(code, start_date, end_date):
     # SHAP 분석 및 저장
     run_shap_analysis(code, load_and_filter_data(code, start_date, end_date), output_bar)
     print("SHAP:",shaplist[:5])
+    selected_features = shaplist[:5]
+
+        # CSV 파일에서 설명을 딕셔너리에 담기
+    explanation_dict = {}
+    with open('data/feature_explain.csv', 'r', encoding='utf-8') as f:
+        reader = csv.reader(f)
+        for row in reader:
+            if len(row) < 2:
+                continue
+            feature = row[0].strip()
+            explanation = row[1].strip()
+
+            if feature in selected_features:
+                explanation_dict[feature] = explanation
+
+    print(f"Selected: {selected_features}")
+    print(f"Selected2: {explanation_dict}")
 
     # 선 그래프 생성 및 저장
     show_chart(code, start_date, end_date, output_chart)
 
-    return output_bar, output_chart
+    return output_bar, output_chart, explanation_dict
 
 
 # show("005930", "2022-01-01", "2023-12-31")

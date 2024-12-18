@@ -33,6 +33,7 @@ class WindowClass(QMainWindow, form_class):
         self.StockName = "None"
         self.StockPeriod = "None"
         self.explanation_dict_lime = {}
+        self.explanation_dict_shap = {}
         #### default variables
         self.calendarButton.setIcon(QIcon("./design/calendar.png"))
         self.infoButton.setIcon(QIcon("./design/info.png"))
@@ -62,7 +63,7 @@ class WindowClass(QMainWindow, form_class):
         # self.expWidget = WindowClass3()
         # self.expWidget.move(self.main_x + self.main_width, self.main_y)
         # self.expWidget.show()
-        self.exp_window = WindowClass3(explanation_dict_lime=self.explanation_dict_lime)
+        self.exp_window = WindowClass3(explanation_dict_lime=self.explanation_dict_lime, explanation_dict_shap=self.explanation_dict_shap)
         self.exp_window.initText()
         self.exp_window.show()
 
@@ -71,6 +72,8 @@ class WindowClass(QMainWindow, form_class):
             self.infoWidget.close()
         if hasattr(self, "expWidget"):
             self.expWidget.close()
+        if hasattr(self, "exp_window"):
+            self.exp_window.close()
         event.accept()
 
     #### End of connect to external widget ####
@@ -99,7 +102,7 @@ class WindowClass(QMainWindow, form_class):
         self.CloseWidget()
         self.CalendarWidget.close()
         self.LogWidget.close()
-        self.exp_window.close()
+        # self.exp_window.close()
         self.close()
 
     def __main__(self):
@@ -215,21 +218,23 @@ class WindowClass(QMainWindow, form_class):
         shap_image = "./result/SHAP_bar_result.png"
 
         try:
-            lime_result_image, selected_features, explanation_dict = run_lime_analysis(
+            lime_result_image, selected_features, explanation_dict_lime = run_lime_analysis(
                 code,
                 start_date,
                 end_date,
                 output_file=lime_image
             )
-            shap_result_image = run_shap_analysis(
-                code, 
-                load_and_filter_data(code, start_date, end_date),
-                output_file=shap_image
-            )
+            # shap_result_image = run_shap_analysis(
+            #     code, 
+            #     load_and_filter_data(code, start_date, end_date),
+            #     output_file=shap_image
+            # )
+            shap_result_image1, shap_result_image2, explanation_dict_shap = show(code, start_date, end_date)
 
             self.Widget2_image = lime_result_image
-            self.Widget3_image = shap_result_image
-            self.explanation_dict_lime = explanation_dict
+            self.Widget3_image = shap_result_image1
+            self.explanation_dict_lime = explanation_dict_lime
+            self.explanation_dict_shap = explanation_dict_shap
         except Exception as e:
             self.printLog(record=f"LIME, SHAP 실행 오류: {e}")
 
