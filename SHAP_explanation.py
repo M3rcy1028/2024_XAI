@@ -21,9 +21,9 @@ elif platform.system() == 'Darwin':  # macOS
     plt.rcParams['font.family'] = 'AppleGothic'
 mpl.rcParams['axes.unicode_minus'] = False
 
-shaplist = []
-stockindex = []
-f_s = []
+shaplist = [] # SHAP 중요도 순서 리스트
+stockindex = [] #주가 지표 리스트
+f_s = [] #재무제표 리스트
 
 
 def load_and_filter_data(code, start_date, end_date):
@@ -59,15 +59,26 @@ def run_shap_analysis(code, data, output_file='result/SHAP_bar_result.png'):
     sorted_indices = np.argsort(np.abs(mean_shap_values))
     sorted_features = X.columns[sorted_indices]
 
-    top_features = sorted_features[:5]
-    top_shap_values = mean_shap_values[sorted_indices][:5]
+    # SHAP 중요도 평균 절댓값 계산
+    shap_importance = shap_values.abs.mean(axis=0).values
 
-    print("Top SHAP Features (Top 5):", list(zip(top_features, top_shap_values)))
+    # 중요도 순서를 나타내는 피처 이름 정렬
+    feature_names = X.columns
+    shap_importance_dict = dict(zip(feature_names, shap_importance))
 
+    # 정렬된 피처를 shaplist에 하나씩 추가
+    for feature in sorted(shap_importance_dict, key=shap_importance_dict.get, reverse=True):
+        shaplist.append(feature)
+    
+
+    top_features = shaplist[:5]  # 상위 5개 피처 이름
+
+    top_shap_values = [mean_shap_values[X.columns.get_loc(feature)] for feature in top_features]  # top_features에 맞는 SHAP 값 추출
+    
     # SHAP 바 그래프 저장
     plt.figure(figsize=(8, 5))  # 저장을 위한 전체 그래프 크기 설정
     plt.barh(
-        top_features,
+        top_features[::-1],
         top_shap_values,
         color=["green" if v > 0 else "red" for v in top_shap_values],
     )
@@ -79,6 +90,7 @@ def run_shap_analysis(code, data, output_file='result/SHAP_bar_result.png'):
     plt.close()
     print(f"SHAP bar graph saved to: {output_file}")
 
+    # shap.summary_plot(shap_values, X)
     return output_file
 
 
@@ -130,8 +142,12 @@ def show(code, start_date, end_date):
 
     # SHAP 분석 및 저장
     run_shap_analysis(code, load_and_filter_data(code, start_date, end_date), output_bar)
+    print("SHAP:",shaplist[:5])
 
     # 선 그래프 생성 및 저장
     show_chart(code, start_date, end_date, output_chart)
 
-    print("Top Stock Indices:", stockindex[:3])
+    return output_bar, output_chart
+
+
+# show("005930", "2022-01-01", "2023-12-31")
