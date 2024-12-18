@@ -32,6 +32,7 @@ class WindowClass(QMainWindow, form_class):
         self.msglog = ""
         self.StockName = "None"
         self.StockPeriod = "None"
+        self.explanation_dict_lime = {}
         #### default variables
         self.calendarButton.setIcon(QIcon("./design/calendar.png"))
         self.infoButton.setIcon(QIcon("./design/info.png"))
@@ -58,9 +59,12 @@ class WindowClass(QMainWindow, form_class):
         self.infoWidget.show()
 
     def ShowExpWidget(self):
-        self.expWidget = WindowClass3()
-        self.expWidget.move(self.main_x + self.main_width, self.main_y)
-        self.expWidget.show()
+        # self.expWidget = WindowClass3()
+        # self.expWidget.move(self.main_x + self.main_width, self.main_y)
+        # self.expWidget.show()
+        self.exp_window = WindowClass3(explanation_dict_lime=self.explanation_dict_lime)
+        self.exp_window.initText()
+        self.exp_window.show()
 
     def closeEvent(self, event):  # close external windows
         if hasattr(self, 'infoWidget'):
@@ -95,6 +99,7 @@ class WindowClass(QMainWindow, form_class):
         self.CloseWidget()
         self.CalendarWidget.close()
         self.LogWidget.close()
+        self.exp_window.close()
         self.close()
 
     def __main__(self):
@@ -224,10 +229,7 @@ class WindowClass(QMainWindow, form_class):
 
             self.Widget2_image = lime_result_image
             self.Widget3_image = shap_result_image
-
-            self.exp_window = WindowClass3(explanation_dict=explanation_dict)
-            self.exp_window.initText()
-            self.exp_window.show()
+            self.explanation_dict_lime = explanation_dict
 
         except Exception as e:
             self.printLog(record=f"LIME, SHAP 실행 오류: {e}")
