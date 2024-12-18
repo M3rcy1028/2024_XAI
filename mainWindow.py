@@ -141,7 +141,6 @@ class WindowClass(QMainWindow, form_class):
         self.StockComboBox.addItem("엔씨소프트 (KRX:036570)")
         self.StockComboBox.addItem("SK하이닉스 (KRX:000660)")
         self.StockComboBox.addItem("KB금융 (KRX:105560)")
-        self.StockComboBox.addItem("SK하이닉스 (KRX:000660)")
 
     def SetDateEdit(self):
         '''
