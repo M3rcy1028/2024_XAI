@@ -14,6 +14,7 @@ from FinDataLoader import FinDataLoader
 from datetime import datetime
 import pandas as pd
 import csv
+import os
 
 # 한글 폰트 설정
 if platform.system() == 'Windows':
@@ -141,7 +142,6 @@ def show(code, start_date, end_date):
     output_chart = 'result/SHAP_char_result.png'
 
     # 폴더 생성 (없을 경우)
-    import os
     os.makedirs('result', exist_ok=True)
 
     # SHAP 분석 및 저장
@@ -171,8 +171,6 @@ def show(code, start_date, end_date):
     return output_bar, output_chart, explanation_dict
 
 def calculate_color_from_values(feature_values, shap_values):
-    import numpy as np
-    import matplotlib.pyplot as plt
 
     norm = plt.Normalize(vmin=np.min(feature_values), vmax=np.max(feature_values))  # 정규화
 
