@@ -75,13 +75,16 @@ def run_shap_analysis(code, data, output_file='result/SHAP_bar_result.png'):
     top_features = shaplist[:5]  # 상위 5개 피처 이름
 
     top_shap_values = [mean_shap_values[X.columns.get_loc(feature)] for feature in top_features]  # top_features에 맞는 SHAP 값 추출
+
+    # SHAP 값에 따른 색상 계산
+    feature_colors = calculate_feature_colors(top_features, shap_values, X, mean_shap_values)
     
     # SHAP 바 그래프 저장
     plt.figure(figsize=(8, 5))  # 저장을 위한 전체 그래프 크기 설정
     plt.barh(
         top_features[::-1],
-        top_shap_values,
-        color=["green" if v > 0 else "red" for v in top_shap_values],
+        top_shap_values[::-1],
+        color=feature_colors[::-1],
     )
     plt.xlabel("Mean SHAP Value")
     plt.ylabel("Features")
@@ -167,5 +170,43 @@ def show(code, start_date, end_date):
 
     return output_bar, output_chart, explanation_dict
 
+def calculate_color_from_values(feature_values, shap_values):
+    import numpy as np
+    import matplotlib.pyplot as plt
 
-# show("005930", "2022-01-01", "2023-12-31")
+    norm = plt.Normalize(vmin=np.min(feature_values), vmax=np.max(feature_values))  # 정규화
+
+    # 양수와 음수 SHAP 값 분리
+    positive_mask = shap_values > 0
+    negative_mask = shap_values < 0
+
+    # 평균값 계산
+    positive_mean = feature_values[positive_mask].mean() if np.any(positive_mask) else 0
+    negative_mean = feature_values[negative_mask].mean() if np.any(negative_mask) else 0
+
+    # 평균값에 따라 색상 결정
+    positive_color = plt.cm.coolwarm(norm(positive_mean))
+    negative_color = plt.cm.coolwarm(norm(negative_mean))
+
+    return positive_color, negative_color
+
+def calculate_feature_colors(top_features, shap_values, X, mean_shap_values):
+    feature_colors = []
+
+    for feature in top_features:
+        feature_index = X.columns.get_loc(feature)
+        feature_shap_values = shap_values.values[:, feature_index]
+        feature_values = X.iloc[:, feature_index].values
+
+        # 양수와 음수 색상 계산
+        positive_color, negative_color = calculate_color_from_values(feature_values, feature_shap_values)
+
+        if mean_shap_values[feature_index] > 0:
+            feature_colors.append(positive_color)
+        else:
+            feature_colors.append(negative_color)
+    
+    return feature_colors
+
+
+# show("005930", "2022-07-01", "2024-07-01")
