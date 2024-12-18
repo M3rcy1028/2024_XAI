@@ -3,7 +3,7 @@ from stock_chart import StockChart
 from infoWindow import WindowClass2
 from expWindow import WindowClass3
 from lime_explanation import run_lime_analysis
-from SHAP_explanation import run_shap_analysis, load_and_filter_data
+from SHAP_explanation import run_shap_analysis, load_and_filter_data, show
 
 # import ui file
 form_class = uic.loadUiType("./XAI_GUI.ui")[0]
@@ -213,11 +213,10 @@ class WindowClass(QMainWindow, form_class):
 
         try:
             lime_result_image, _ = run_lime_analysis(code, start_date, end_date, output_file=lime_image)
-            shap_result_image = run_shap_analysis(code, load_and_filter_data(code, start_date, end_date),
-                                                  output_file=shap_image)
+            shap_result_image1, shap_result_image2 = show(code, start_date, end_date)
             # 결과 이미지 업데이트
             self.Widget2_image = lime_result_image
-            self.Widget3_image = shap_result_image
+            self.Widget3_image = shap_result_image1
         except Exception as e:
             self.printLog(record=f"LIME, SHAP 실행 오류: {e}")
 
@@ -420,6 +419,7 @@ class WindowClass(QMainWindow, form_class):
         self.Widget3.setWindowTitle(title)
         self.Widget3.setWindowIcon(QIcon(icon))
         self.Widget3.show()
+
 
     def CalendarWidget(self):
         self.CalendarWidget = QWidget()
