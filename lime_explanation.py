@@ -71,8 +71,8 @@ def plot_lime(explanations, instance_dates, predictions, output_path):
 
         signal = "매수" if prediction > 0 else "매도"
 
-        axes[i].barh(features, positive_contrib, color='orange', label='Positive')
-        axes[i].barh(features, negative_contrib, color='blue', label='Negative')
+        axes[i].barh(features, positive_contrib, color='#208c20', label='Positive')
+        axes[i].barh(features, negative_contrib, color='#b32222', label='Negative')
         axes[i].axvline(0, color='black', linewidth=0.5)
         axes[i].set_title(
             f'{instance_date}\n({signal}를 추천)'
