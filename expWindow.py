@@ -5,13 +5,15 @@ from lime_explanation import *
 form_class3 = uic.loadUiType("./EXP_GUI.ui")[0]
 
 class WindowClass3(QDockWidget, form_class3):
-    def __init__(self):
+    def __init__(self, explanation_dict_lime=None, explanation_dict_shap=None):
         super().__init__()
         self.setupUi(self)
-        self.setWindowTitle("Model Explanation")      # main widget title
-        self.setWindowIcon(QIcon("./design/exp.png")) # main widget icon
-        self.LIME_text.setReadOnly(True)                  # ReadOnly
-        self.SHAP_text.setReadOnly(True)                  # ReadOnly
+        self.setWindowTitle("Model Explanation")
+        self.setWindowIcon(QIcon("./design/exp.png"))
+        self.LIME_text.setReadOnly(True)
+        self.SHAP_text.setReadOnly(True)
+        self.explanation_dict_lime = explanation_dict_lime
+        self.explanation_dict_shap = explanation_dict_shap
         self.initText()
         self.__main__()
 
@@ -26,5 +28,22 @@ class WindowClass3(QDockWidget, form_class3):
     def createText(self):
         # lime 및 shap 설명 나오도록
         # 괄호 안에 설명 추가 
-        self.LIME_text.setText("설명 추가")
-        self.SHAP_text.setText("설명 추가")
+        # explanation_text가 존재한다면 해당 문자열로 설정
+        if self.explanation_dict_lime is not None:
+            lines = []
+            for key, value in self.explanation_dict_lime.items():
+                lines.append(f"{key}: {value}")
+            pretty_text = "\n".join(lines)
+            self.LIME_text.setText(pretty_text)
+        else:
+            self.LIME_text.setText("No explanation available")
+
+        if self.explanation_dict_shap is not None:
+            lines = []
+            for key, value in self.explanation_dict_shap.items():
+                lines.append(f"{key}: {value}")
+            pretty_text = "\n".join(lines)
+            self.SHAP_text.setText(pretty_text)
+
+        else:
+            self.SHAP_text.setText("No explanation available")

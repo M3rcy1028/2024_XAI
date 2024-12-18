@@ -3,7 +3,8 @@ from stock_chart import StockChart
 from infoWindow import WindowClass2
 from expWindow import WindowClass3
 from lime_explanation import run_lime_analysis
-from SHAP_explanation import run_shap_analysis, load_and_filter_data
+from SHAP_explanation import run_shap_analysis, load_and_filter_data, show
+import json
 
 # import ui file
 form_class = uic.loadUiType("./XAI_GUI.ui")[0]
@@ -31,6 +32,8 @@ class WindowClass(QMainWindow, form_class):
         self.msglog = ""
         self.StockName = "None"
         self.StockPeriod = "None"
+        self.explanation_dict_lime = {}
+        self.explanation_dict_shap = {}
         #### default variables
         self.calendarButton.setIcon(QIcon("./design/calendar.png"))
         self.infoButton.setIcon(QIcon("./design/info.png"))
@@ -57,15 +60,20 @@ class WindowClass(QMainWindow, form_class):
         self.infoWidget.show()
 
     def ShowExpWidget(self):
-        self.expWidget = WindowClass3()
-        self.expWidget.move(self.main_x + self.main_width, self.main_y)
-        self.expWidget.show()
+        # self.expWidget = WindowClass3()
+        # self.expWidget.move(self.main_x + self.main_width, self.main_y)
+        # self.expWidget.show()
+        self.exp_window = WindowClass3(explanation_dict_lime=self.explanation_dict_lime, explanation_dict_shap=self.explanation_dict_shap)
+        self.exp_window.initText()
+        self.exp_window.show()
 
     def closeEvent(self, event):  # close external windows
         if hasattr(self, 'infoWidget'):
             self.infoWidget.close()
         if hasattr(self, "expWidget"):
             self.expWidget.close()
+        if hasattr(self, "exp_window"):
+            self.exp_window.close()
         event.accept()
 
     #### End of connect to external widget ####
@@ -94,6 +102,7 @@ class WindowClass(QMainWindow, form_class):
         self.CloseWidget()
         self.CalendarWidget.close()
         self.LogWidget.close()
+        # self.exp_window.close()
         self.close()
 
     def __main__(self):
@@ -132,16 +141,24 @@ class WindowClass(QMainWindow, form_class):
         self.StockComboBox.addItem("엔씨소프트 (KRX:036570)")
         self.StockComboBox.addItem("SK하이닉스 (KRX:000660)")
         self.StockComboBox.addItem("KB금융 (KRX:105560)")
+        self.StockComboBox.addItem("SK하이닉스 (KRX:000660)")
 
     def SetDateEdit(self):
         '''
             Initialize Start/End Date based on 
             User Defined Date/Q1/Q2/Q3/Q4
         '''
+        '''
         CurrentDate = datetime.now()
         year = CurrentDate.year
         d1 = QDate(year - 2, CurrentDate.month, CurrentDate.day)
         d2 = QDate(year, CurrentDate.month, CurrentDate.day)
+        '''
+        year = 2024
+        month = 7
+        day = 1
+        d1 = QDate(year - 2, month, day);
+        d2 = QDate(year, month, day)
         if self.Q1_radioButton.isChecked():
             d1 = QDate(year, 1, 1)
             d2 = QDate(year, 3, 31)
@@ -196,13 +213,40 @@ class WindowClass(QMainWindow, form_class):
         formatted_time = datetime.now().strftime("%A, %B %d, %Y, %I:%M:%S %p")
         self.statusBar.showMessage(formatted_time)
 
-        #### Define Button Function ####
-
-    def InputButton(self):  # [Confirm]
-        # self.SetLLM()
+    def InputButton(self):
         self.CloseWidget()
         self.DataProcessing()
         self.GenerateResult()
+
+        start_date = self.StartDate.date().toString("yyyy-MM-dd")
+        end_date = self.EndDate.date().toString("yyyy-MM-dd")
+        stock_name = self.StockComboBox.currentText()
+        code = re.search(r':(\d+)', stock_name).group(1)
+        lime_image = "./result/lime_explanation.png"
+        shap_image = "./result/SHAP_bar_result.png"
+
+        try:
+            lime_result_image, selected_features, explanation_dict_lime = run_lime_analysis(
+                code,
+                start_date,
+                end_date,
+                output_file=lime_image
+            )
+            # shap_result_image = run_shap_analysis(
+            #     code, 
+            #     load_and_filter_data(code, start_date, end_date),
+            #     output_file=shap_image
+            # )
+            shap_result_image1, shap_result_image2, explanation_dict_shap = show(code, start_date, end_date)
+
+            self.Widget2_image = lime_result_image
+            self.Widget3_image = shap_result_image1
+            self.explanation_dict_lime = explanation_dict_lime
+            self.explanation_dict_shap = explanation_dict_shap
+        except Exception as e:
+            self.printLog(record=f"LIME, SHAP 실행 오류: {e}")
+
+
         self.ProgressLoading()
         self.printLog(record="Data submitted")
 
@@ -268,44 +312,14 @@ class WindowClass(QMainWindow, form_class):
             self.chart.show(block=False)
             self.printLog(record="candle chart selected")
 
-        # 위젯 출력 전 변수 처리
-        start_date = self.StartDate.date().toString("yyyy-MM-dd")
-        end_date = self.EndDate.date().toString("yyyy-MM-dd")
-        stock_name = self.StockComboBox.currentText()
-        code = re.search(r':(\d+)', stock_name).group(1)
-        lime_image = "./result/lime_explanation.png"
-        shap_image = "./result/SHAP_bar_result.png"
-
         if self.LIME_checkBox.isChecked() and self.SHAP_checkBox.isChecked():
-            try:
-                lime_result_image = run_lime_analysis(code, start_date, end_date, output_file=lime_image)
-                shap_result_image = run_shap_analysis(code, load_and_filter_data(code, start_date, end_date), output_file=shap_image)
-                # 결과 이미지 업데이트
-                self.Widget2_image = lime_result_image
-                self.Widget3_image = shap_result_image
-            except Exception as e:
-                self.printLog(record=f"LIME, SHAP 실행 오류: {e}")
-                return
             self.Widget2_exec()  # lime widget 실행
             self.Widget3_exec()  # SHAP widget 실행
             self.printLog(record="LIME/SHAP selected")
         elif self.LIME_checkBox.isChecked() == False and self.SHAP_checkBox.isChecked():
-            try:
-                shap_result_image = run_shap_analysis(code, load_and_filter_data(code, start_date, end_date), output_file=shap_image)
-                # 결과 이미지 업데이트
-                self.Widget3_image = shap_result_image
-            except Exception as e:
-                self.printLog(record=f"SHAP 실행 오류: {e}")
-                return
             self.Widget3_exec()  # SHAP widget 실행
             self.printLog(record="SHAP selected")
         elif self.LIME_checkBox.isChecked() and self.SHAP_checkBox.isChecked() == False:
-            try:
-                result_image = run_lime_analysis(code, start_date, end_date, output_file=lime_image)
-                self.Widget2_image = result_image  # 결과 이미지 업데이트
-            except Exception as e:
-                self.printLog(record=f"LIME 실행 오류: {e}")
-                return
             self.Widget2_exec()  # lime widget 실행
             self.printLog(record="LIME selected")
 
@@ -409,13 +423,30 @@ class WindowClass(QMainWindow, form_class):
         Widget3layout.addWidget(wd3label)  # add new layout
 
     def Widget3_exec(self, title="SHAP", icon="./design/shap.png"):
+        self.Widget3_image = "./result/SHAP_bar_result.png"
 
         if hasattr(self, "Widget3") and self.Widget3.isVisible():
             self.Widget3.close()
 
+        self.Widget3 = QWidget()
+        self.Widget3.resize(400, 300)
+        self.Widget3.setMinimumSize(100, 100)
+
+        shap_pixmap = QPixmap(self.Widget3_image)
+        if shap_pixmap.isNull():
+            print(f"Error: Unable to load image from {self.Widget3_image}")
+        shap_label = QLabel()
+        shap_label.setPixmap(shap_pixmap)
+        shap_label.setScaledContents(True)
+
+        Widget3layout = QVBoxLayout()
+        Widget3layout.addWidget(shap_label)
+        self.Widget3.setLayout(Widget3layout)
+
         self.Widget3.setWindowTitle(title)
         self.Widget3.setWindowIcon(QIcon(icon))
         self.Widget3.show()
+
 
     def CalendarWidget(self):
         self.CalendarWidget = QWidget()

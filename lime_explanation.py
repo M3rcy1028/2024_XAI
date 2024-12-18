@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import re
 import platform
+import csv
 
 # 한글 폰트 설정
 if platform.system() == 'Windows':
@@ -120,6 +121,7 @@ def run_lime_analysis(code, start_date, end_date, alpha=0.1, beta=-0.05, output_
     explanations = []
     instance_dates = []
     predictions = []
+    selected_features = []
 
     signal_dates = list(set(buy_dates + sell_dates))
     signal_dates = sorted(signal_dates)[-4:]  # 최근 4개 데이터 선택
@@ -139,9 +141,34 @@ def run_lime_analysis(code, start_date, end_date, alpha=0.1, beta=-0.05, output_
         prediction = model.predict([instance])[0]
         explanation = explainer.explain_instance(instance, model.predict, num_features=5)
 
+        lime_data = explanation.as_list()
+        lime_features = [
+            ' '.join([word for word in re.split(r'[\s<><=]+', item[0]) if not re.match(r'^[-+]?\d*\.?\d+$', word)])
+            for item in lime_data
+        ]
+        selected_features.append(lime_features)
+
         explanations.append(explanation)
         instance_dates.append(instance_date)
         predictions.append(prediction)
 
+    selected_features = list(set(feature for sublist in selected_features for feature in sublist))
     plot_lime(explanations, instance_dates, predictions, output_file)
-    return output_file
+
+    # CSV 파일에서 설명을 딕셔너리에 담기
+    explanation_dict = {}
+    with open('data/feature_explain.csv', 'r', encoding='utf-8') as f:
+        reader = csv.reader(f)
+        for row in reader:
+            if len(row) < 2:
+                continue
+            feature = row[0].strip()
+            explanation = row[1].strip()
+
+            if feature in selected_features:
+                explanation_dict[feature] = explanation
+
+    print(f"Selected: {selected_features}")
+    print(f"Selected2: {explanation_dict}")
+    
+    return output_file, selected_features, explanation_dict
