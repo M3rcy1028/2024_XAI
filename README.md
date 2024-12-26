@@ -3,13 +3,13 @@
     2024_XAI/
     │
     ├── data/
-    ├── design/			# widget icons
-    ├── stock_csv/		# actual OLHCV
-    ├── model/			# trained model
-    ├── XAI_GUI.ui		# main widget
+    ├── design/             # widget icons
+    ├── stock_csv/          # actual OLHCV
+    ├── model/              # trained model
+    ├── XAI_GUI.ui          # main widget
     ├── lime_explanation.py	# generate lime chart
     ├── SHAP_explanation.py	# generate shap chart
-    ├── stock_chart.py		# candle/predict chart
+    ├── stock_chart.py      # candle/predict chart
     └── README.md
 
 ### Major Libraries
